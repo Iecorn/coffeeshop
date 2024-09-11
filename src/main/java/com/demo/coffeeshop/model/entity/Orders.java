@@ -3,6 +3,7 @@ package com.demo.coffeeshop.model.entity;
 import com.demo.coffeeshop.model.entity.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,7 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Getter
 @Setter
@@ -25,6 +28,7 @@ public class Orders {
     private UUID orderId;
 
     @Column(length = 50)
+    @Size(min = 4, max = 50)
     private String email;
 
     @Column(length = 200)
@@ -53,7 +57,7 @@ public class Orders {
         this.email = email;
         this.address = address;
         this.postcode = postcode;
-        this.orderStatus = OrderStatus.PREPARING;
+        this.orderStatus = OrderStatus.ACCEPTED;
     }
 
     public static Orders createOrder(String email, String address, String postcode, List<OrderItems> orderItems) {
@@ -80,8 +84,26 @@ public class Orders {
     }
     
     public void cancel(){
-        if(this.orderStatus == OrderStatus.DELIVERY || this.orderStatus == OrderStatus.CANCEL)
+        if(this.orderStatus == OrderStatus.CANCELLED || this.orderStatus == OrderStatus.SHIPPED)
             throw new IllegalStateException("Already Delivered");
-        this.orderStatus = OrderStatus.CANCEL;
+        this.orderStatus = OrderStatus.CANCELLED;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email);
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validateEmail() {
+        if (!checkAddress(this.email)) {
+            throw new IllegalArgumentException("이메일 형식이 올바르지 않습니다.");
+        }
+    }
+
+    // 이메일 유효성 검사 메서드
+    private static boolean checkAddress(String address) {
+        return Pattern.matches("\\b[\\w\\.-]+@[\\w\\.-]+\\.\\w{2,4}\\b", address);
     }
 }

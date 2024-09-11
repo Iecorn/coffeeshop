@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,9 +39,11 @@ public class ProductController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@RequestParam("id") UUID id) {
+    public ResponseEntity<Map<String, Object>> delete(@RequestParam("id") UUID id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok().body("sucess");
+        Map<String, Object> map = new HashMap<>();
+        map.put("result", "success");
+        return ResponseEntity.ok().body(map);
     }
 
     @GetMapping("/list")
